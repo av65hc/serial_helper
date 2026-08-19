@@ -1,0 +1,7 @@
+build-*
+*.pro.user
+*.pro.user.*
+*.o
+*.exe
+*.log
+*.tmp
