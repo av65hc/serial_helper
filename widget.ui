@@ -123,6 +123,9 @@ QTextEdit {
       </item>
       <item>
        <widget class="QComboBox" name="baudrate">
+        <property name="currentIndex">
+         <number>4</number>
+        </property>
         <item>
          <property name="text">
           <string>9600</string>
@@ -148,9 +151,6 @@ QTextEdit {
           <string>115200</string>
          </property>
         </item>
-        <property name="currentIndex">
-         <number>4</number>
-        </property>
        </widget>
       </item>
       <item>
@@ -255,6 +255,20 @@ QTextEdit {
        </property>
        <layout class="QVBoxLayout" name="recvLayout">
         <item>
+         <widget class="QCheckBox" name="Hex_send">
+          <property name="text">
+           <string>CheckBox</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="Hex_rec">
+          <property name="text">
+           <string>CheckBox</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QTextEdit" name="textEdit">
           <property name="readOnly">
            <bool>true</bool>
@@ -273,7 +287,7 @@ QTextEdit {
           <item>
            <spacer name="recvSpacer">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>

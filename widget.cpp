@@ -30,11 +30,6 @@ Widget::Widget(QWidget *parent)
     my_serial->setStopBits(QSerialPort::OneStop);
     my_serial->setFlowControl(QSerialPort::NoFlowControl);
     connect(my_serial, &QSerialPort::readyRead, this, &Widget::show_text);
-
-    // 测试：每 500ms 自动发送一次模拟温度数据
-    m_send_timer = new QTimer(this);
-    connect(m_send_timer, &QTimer::timeout, this, &Widget::on_timer_send);
-    m_send_timer->start(500);
 }
 
 Widget::~Widget()
@@ -47,14 +42,18 @@ void Widget::on_pushButton_clicked()
 {
     QByteArray head = head_char.toUtf8();
     QByteArray last = last_char.toUtf8();
-
-    // 拼帧：帧头 + 数据 + 帧尾
-    QByteArray frame = head + ui->lineEdit->text().toUtf8() + last;
-
-    // CRC 覆盖「帧头 + 数据 + 帧尾」，小端追加（低字节在前）
+    QByteArray payload;
+    QString info = ui->lineEdit->text();
+    if(ui->Hex_send->isChecked()){
+        payload = QByteArray::fromHex(info.toLatin1());
+    }
+    else{
+        payload = info.toUtf8();
+    }
+    QByteArray frame = head + payload + last;
     quint16 crc = crc_cal(frame);
-    frame.append(char(crc & 0xFF));   // 低字节
-    frame.append(char(crc >> 8));     // 高字节
+    frame.append(char(crc & 0xFF));
+    frame.append(char(crc >> 8));
 
     my_serial->write(frame);
 }
@@ -122,31 +121,28 @@ void Widget::on_pushButton_2_clicked()
 void Widget::show_text()
 {
     m_buffer.append(my_serial->readAll());
-
     QByteArray head = head_char.toUtf8();
     QByteArray last = last_char.toUtf8();
 
-    // 没配置帧头帧尾时，直接原样显示
     if (head.isEmpty() || last.isEmpty()) {
         if (!m_buffer.isEmpty()) {
-            ui->textEdit->append(QString::fromUtf8(m_buffer));
+            hex_checked(m_buffer);
             m_buffer.clear();
         }
         return;
     }
 
-    // 循环：从缓冲区切出完整帧，一帧一帧处理
     while (true) {
         int start = m_buffer.indexOf(head);
         if (start == -1) break;
 
         int end = m_buffer.indexOf(last, start + head.size());
-        if (end == -1) break;   // 帧尾还没到，等下一批数据
+        if (end == -1) break;
 
-        int frameEnd = end + last.size();           // 帧尾之后的第一个字节位置
-        if (m_buffer.size() < frameEnd + 2) break;  // CRC 两个字节还没收全
+        int frameEnd = end + last.size();
+        if (m_buffer.size() < frameEnd + 2) break;
 
-        QByteArray frame = m_buffer.mid(start, frameEnd - start);  // 含帧头帧尾
+        QByteArray frame = m_buffer.mid(start, frameEnd - start);
         quint16 recvCrc = (quint8)m_buffer.at(frameEnd)
                         | ((quint8)m_buffer.at(frameEnd + 1) << 8);
         quint16 calcCrc = crc_cal(frame);
@@ -155,7 +151,7 @@ void Widget::show_text()
             QByteArray data = m_buffer.mid(start + head.size(),
                                            end - start - head.size());
             QString show_data = QString::fromUtf8(data);
-            ui->textEdit->append(show_data);
+            hex_checked(data);
             m_x.append(m_index++);
             m_y.append(show_data.toFloat());
             if(m_x.size()>max_length){
@@ -169,7 +165,7 @@ void Widget::show_text()
             qDebug() << "CRC 校验失败，丢弃一帧";
         }
 
-        m_buffer.remove(0, frameEnd + 2);   // 移除已处理的这一帧（含 CRC）
+        m_buffer.remove(0, frameEnd + 2);
     }
 }
 
@@ -180,39 +176,50 @@ void Widget::dialog_show(QString text)
     dialog.exec();
 }
 
-void Widget::on_timer_send()
-{
-    if (!my_serial->isOpen())
-        return;   // 串口没打开就不发送
+// void Widget::on_timer_send()
+// {
+//     if (!my_serial->isOpen())
+//         return;
 
-    // 生成模拟温度值：25 ± 5 度之间正弦波动
-    static double phase = 0.0;
-    double temp = 25.0 + 5.0 * qSin(phase);
-    phase += 0.3;
+//     static double phase = 0.0;
+//     double temp = 25.0 + 5.0 * qSin(phase);
+//     phase += 0.3;
 
-    QByteArray head = head_char.toUtf8();
-    QByteArray last = last_char.toUtf8();
+//     QByteArray head = head_char.toUtf8();
+//     QByteArray last = last_char.toUtf8();
 
-    QString data = QString::number(temp, 'f', 2);   // 两位小数，如 "26.78"
+//     QString data = QString::number(temp, 'f', 2);
 
-    QByteArray frame = head + data.toUtf8() + last;
-    quint16 crc = crc_cal(frame);
-    frame.append(char(crc & 0xFF));   // CRC 低字节在前
-    frame.append(char(crc >> 8));     // CRC 高字节在后
+//     QByteArray frame = head + data.toUtf8() + last;
+//     quint16 crc = crc_cal(frame);
+//     frame.append(char(crc & 0xFF));
+//     frame.append(char(crc >> 8));
 
-    my_serial->write(frame);
-}
+//     my_serial->write(frame);
+// }
 
 void Widget::on_pushButton_clear_clicked()
 {
-    ui->textEdit->clear();            // 清空接收显示区
-    m_buffer.clear();                 // 清空接收缓冲区
-    m_x.clear();                      // 清空图表数据
+    ui->textEdit->clear();
+    m_buffer.clear();
+    m_x.clear();
     m_y.clear();
     m_index = 0;
     ui->customplot->graph(0)->setData(m_x, m_y);
     ui->customplot->graph(0)->rescaleAxes();
     ui->customplot->replot();
+}
+
+void Widget::hex_checked(QByteArray &data){
+    bool is_checked = ui->Hex_rec->isChecked();
+    QString show_info = nullptr;
+    if(is_checked){
+        show_info= data.toHex(' ');
+    }
+    else{
+        show_info = QString::fromUtf8(data);
+    }
+    ui->textEdit->append(show_info);
 }
 
 quint16 Widget::crc_cal(const QByteArray &data)
@@ -231,3 +238,21 @@ quint16 Widget::crc_cal(const QByteArray &data)
     }
     return crc;
 }
+
+void Widget::on_Hex_send_checkStateChanged(const Qt::CheckState &arg1)
+{
+    QString text = ui->lineEdit->text();
+    QString show_text;
+    QByteArray raw;
+    if(text.isEmpty()) return;
+    if(arg1 == Qt::CheckState::Checked){
+        raw = text.toUtf8();
+        show_text = raw.toHex(' ');
+    }
+    else{
+        raw = QByteArray::fromHex(text.toLatin1());
+        show_text = QString::fromUtf8(raw);
+    }
+    ui->lineEdit->setText(show_text);
+}
+

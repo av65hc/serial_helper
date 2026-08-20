@@ -29,21 +29,21 @@ private slots:
 
     void show_text();
 
-    void on_timer_send();   // 定时发送（测试用）
+    void on_pushButton_clear_clicked();
 
-    void on_pushButton_clear_clicked();   // 清空接收区与图表
+    void on_Hex_send_checkStateChanged(const Qt::CheckState &arg1);
 
 private:
     Ui::Widget *ui;
     QSerialPort *my_serial;
     void dialog_show(QString text);
-    QByteArray m_buffer;   // 接收缓冲区，攒够一帧再解析
+    void hex_checked(QByteArray &data);
+    QByteArray m_buffer;
     quint16 crc_cal(const QByteArray &data);
 
-    QTimer *m_send_timer;      // 定时发送计时器（测试用）
-    QVector<double> m_x;       // 绘图 x 轴（采样序号）
-    QVector<double> m_y;       // 绘图 y 轴（温度值）
-    int m_index = 0;           // 采样计数
-    int max_length = 50;       // 图表最多保留点数
+    QVector<double> m_x;
+    QVector<double> m_y;
+    int m_index = 0;
+    int max_length = 50;
 };
 #endif // WIDGET_H

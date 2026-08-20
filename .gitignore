@@ -1,7 +1,7 @@
-build-*
+# Qt编译输出
+build/
 *.pro.user
 *.pro.user.*
+*.qrc
+Makefile*
 *.o
-*.exe
-*.log
-*.tmp
