@@ -1,15 +1,19 @@
 #ifndef WIDGET_H
 #define WIDGET_H
+
+#include <QWidget>
 #include <QSerialPort>
 #include <QTimer>
 #include <QVector>
+#include "qcustomplot.h"
+#include <QFile>
+#include <QTextStream>
+#include <QFileDialog>
+#include <QDateTime>
 
-#include <QWidget>
 
 QT_BEGIN_NAMESPACE
-namespace Ui {
-class Widget;
-}
+namespace Ui { class Widget; }
 QT_END_NAMESPACE
 
 class Widget : public QWidget
@@ -17,33 +21,39 @@ class Widget : public QWidget
     Q_OBJECT
 
 public:
-    explicit Widget(QWidget *parent = nullptr);
-    ~Widget() override;
-    QString head_char;
-    QString last_char;
+    Widget(QWidget *parent = nullptr);
+    ~Widget();
 
 private slots:
     void on_pushButton_clicked();
-
     void on_pushButton_2_clicked();
-
     void show_text();
-
+    void dialog_show(QString text);
     void on_pushButton_clear_clicked();
-
+    void hex_checked(QByteArray &data);
+    void send_cir();
+    void checkSerialPortAvailability();
+    void on_cycle_time_textChanged(const QString &arg1);
     void on_Hex_send_checkStateChanged(const Qt::CheckState &arg1);
+
+    void on_btnExportCsv_clicked();
 
 private:
     Ui::Widget *ui;
     QSerialPort *my_serial;
-    void dialog_show(QString text);
-    void hex_checked(QByteArray &data);
-    QByteArray m_buffer;
-    quint16 crc_cal(const QByteArray &data);
+    QTimer *cir_send;
+    QTimer *m_portCheckTimer;
 
+    QByteArray m_buffer;
+    QString head_char;
+    QString last_char;
+    QVector<QDateTime> m_times;
     QVector<double> m_x;
     QVector<double> m_y;
     int m_index = 0;
-    int max_length = 50;
+    const int max_length = 200;
+    const int m_maxBufferSize = 4096;
+    quint16 crc_cal(const QByteArray &data);
 };
-#endif // WIDGET_H
+
+#endif

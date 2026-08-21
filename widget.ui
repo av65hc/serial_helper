@@ -85,6 +85,10 @@ QTextEdit {
     font-size: 13px;
     background-color: #ffffff;
     color: #2c3e50;
+}
+QCheckBox {
+    color: #2c3e50;
+    spacing: 6px;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
@@ -255,20 +259,6 @@ QTextEdit {
        </property>
        <layout class="QVBoxLayout" name="recvLayout">
         <item>
-         <widget class="QCheckBox" name="Hex_send">
-          <property name="text">
-           <string>CheckBox</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="Hex_rec">
-          <property name="text">
-           <string>CheckBox</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QTextEdit" name="textEdit">
           <property name="readOnly">
            <bool>true</bool>
@@ -281,6 +271,20 @@ QTextEdit {
            <widget class="QPushButton" name="pushButton_clear">
             <property name="text">
              <string>清空接收</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="Hex_rec">
+            <property name="text">
+             <string>十六进制接收</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnExportCsv">
+            <property name="text">
+             <string>导出CSV</string>
             </property>
            </widget>
           </item>
@@ -350,11 +354,55 @@ QTextEdit {
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton">
-            <property name="text">
-             <string>发送</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="sendBtnLayout">
+            <item>
+             <widget class="QPushButton" name="pushButton">
+              <property name="text">
+               <string>发送</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="Hex_send">
+              <property name="text">
+               <string>十六进制发送</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="timeout_send">
+              <property name="text">
+               <string>定时发送</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="cycle_time">
+              <property name="maximumSize">
+               <size>
+                <width>110</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="placeholderText">
+               <string>定时周期(ms)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="sendSpacer">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
